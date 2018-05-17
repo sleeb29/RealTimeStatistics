@@ -43,7 +43,7 @@ public class StatisticsSnapshotRepository {
 
     public StatisticsSnapshot getOldestSnapshotInWindow(Long lookBackTime){
         int lookBackAsInt = Integer.parseInt(lookBackTime.toString());
-        return this.getLastSnapshotEntry().getValue().getSnapshot().get(lookBackAsInt);
+        return this.getLastSnapshotEntry().getValue().getPreviousMinuteSnapshot().get(lookBackAsInt);
     }
 
     private class TransactionTimeStampComparator implements Comparator<Long> {
