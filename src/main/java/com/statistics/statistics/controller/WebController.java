@@ -33,11 +33,11 @@ public class WebController {
     }
 
     @RequestMapping(value = "/statistics", method = RequestMethod.GET)
-    public ResponseEntity<Void> getStatistics() {
+    public ResponseEntity<StatisticsSnapshot> getStatistics() {
 
         long endTime = System.currentTimeMillis() / 1000L;
         StatisticsSnapshot statisticsSnapshot = transactionService.getResult(endTime);
-        return null;
+        return new ResponseEntity<>(statisticsSnapshot, HttpStatus.OK);
     }
 
 }
