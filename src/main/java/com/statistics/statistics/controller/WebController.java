@@ -1,6 +1,6 @@
 package com.statistics.statistics.controller;
 
-import com.statistics.statistics.exception.TransactionExpiredExeption;
+import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
 
@@ -26,7 +26,7 @@ public class WebController {
             long currentTime = System.currentTimeMillis() / 1000L;
             transactionService.addTransaction(transaction, currentTime);
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (TransactionExpiredExeption e) {
+        } catch (TransactionExpiredException e) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 

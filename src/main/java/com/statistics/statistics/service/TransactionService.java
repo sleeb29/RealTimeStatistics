@@ -1,6 +1,6 @@
 package com.statistics.statistics.service;
 
-import com.statistics.statistics.exception.TransactionExpiredExeption;
+import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
 import com.statistics.statistics.repository.StatisticsSnapshotRepository;
@@ -19,7 +19,7 @@ public class TransactionService {
 
     static long WINDOW_IN_MILLISECONDS = 60_000;
 
-    public synchronized void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredExeption {
+    public synchronized void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException {
 
         Map.Entry<Long, StatisticsSnapshot> lastSnapshotEntry = statisticsSnapshotRepository.getLastSnapshotEntry();
         if(lastSnapshotEntry == null){
@@ -30,7 +30,7 @@ public class TransactionService {
         }
 
         if(transaction.getTimestamp() < currentTime - WINDOW_IN_MILLISECONDS){
-            throw new TransactionExpiredExeption(transaction, transaction.getTimestamp());
+            throw new TransactionExpiredException(transaction, transaction.getTimestamp());
         }
 
         StatisticsSnapshot newSnapshot = new StatisticsSnapshot(transaction.getTimestamp(),
