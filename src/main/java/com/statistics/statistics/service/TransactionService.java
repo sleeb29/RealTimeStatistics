@@ -4,6 +4,8 @@ import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
 import com.statistics.statistics.repository.StatisticsSnapshotRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,18 +15,19 @@ import java.util.SortedMap;
 @Service
 public class TransactionService {
 
+    @Autowired
     StatisticsSnapshotRepository statisticsSnapshotRepository;
 
     public TransactionService(){
-        this.statisticsSnapshotRepository = new StatisticsSnapshotRepository();
+
     }
 
-    // TODO - exposing business logic for testing, move to properties file
-    public static long WINDOW_IN_MILLISECONDS = 60_000;
+    @Value("${statistics.api.window_length_in_milliseconds}")
+    private long windowLengthInMilliseconds;
 
     public synchronized void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException {
 
-        if(transaction.getTimestamp() < currentTime - WINDOW_IN_MILLISECONDS){
+        if(transaction.getTimestamp() < currentTime - windowLengthInMilliseconds){
             throw new TransactionExpiredException(transaction, transaction.getTimestamp());
         }
 
@@ -38,16 +41,8 @@ public class TransactionService {
 
     private void refreshRepository(long currentTime){
 
-        Map.Entry<Long, StatisticsSnapshot> lastSnapshotEntry = statisticsSnapshotRepository.getLastSnapshotEntry();
-
-        Long snapShotTimestamp = lastSnapshotEntry.getKey();
-
         SortedMap<Long, StatisticsSnapshot> newStatisticsSortedMap = statisticsSnapshotRepository.getTempSnapShotSortedMap();
-
-        ArrayList<StatisticsSnapshot> previousMinuteSnapshot = new ArrayList<>();
-
         updateSnapshots(currentTime, newStatisticsSortedMap);
-
         statisticsSnapshotRepository.setStatisticsSnapshotSortedMap(newStatisticsSortedMap);
 
     }
@@ -67,7 +62,7 @@ public class TransactionService {
             long timeStamp = entry.getKey();
             StatisticsSnapshot entrySnapshot = entry.getValue();
 
-            if(timeStamp < currentTime - WINDOW_IN_MILLISECONDS){
+            if(timeStamp < currentTime - windowLengthInMilliseconds){
                 break;
             }
 
@@ -104,7 +99,7 @@ public class TransactionService {
         }
 
         if(startIndex != -1){
-            long chunkSize = WINDOW_IN_MILLISECONDS - (currentTime - priorTimestamp);
+            long chunkSize = windowLengthInMilliseconds - (currentTime - priorTimestamp);
             updateSnapshot(priorEntry, startIndex, chunkSize, previousMinuteSnapshot);
         }
 
@@ -137,7 +132,7 @@ public class TransactionService {
         }
 
         Long timeStamp = lastSnapshotEntry.getKey();
-        Long endOfWindow = endTime - WINDOW_IN_MILLISECONDS;
+        Long endOfWindow = endTime - windowLengthInMilliseconds;
         if(timeStamp < endOfWindow){
             return null;
         }

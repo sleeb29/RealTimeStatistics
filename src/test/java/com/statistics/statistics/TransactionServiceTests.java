@@ -6,23 +6,21 @@ import com.statistics.statistics.model.Transaction;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.statistics.statistics.service.TransactionService;
 
 @RunWith(SpringRunner.class)
-@ComponentScan({
-        "com.statistics.statistics.service",
-        "com.statistics.statistics.repository",
-        "com.statistics.statistics.controller"
-})
+@SpringBootTest
 public class TransactionServiceTests {
+
+    @Autowired
+    TransactionService transactionService;
 
     @Test
     public void addOneTransaction_ValidTransaction_True() throws TransactionExpiredException {
-
-        TransactionService transactionService = new TransactionService();
 
         long currentTime = System.currentTimeMillis() / 1000L;
         Double amount = 12.0;
@@ -40,8 +38,6 @@ public class TransactionServiceTests {
 
     @Test
     public void addTwoTransactions_SecondTransactionValid_True() throws TransactionExpiredException {
-
-        TransactionService transactionService = new TransactionService();
 
         long transactionTime = System.currentTimeMillis() / 1000L;
         long secondTransactionTime = transactionTime + 1000;
