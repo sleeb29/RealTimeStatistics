@@ -1,5 +1,6 @@
 package com.statistics.statistics.service;
 
+import com.statistics.statistics.exception.TransactionExpiredDueToServerException;
 import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
@@ -22,7 +23,7 @@ public class TransactionService {
     private long windowLengthInMilliseconds;
     private long mostRecentPostTime;
 
-    public void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException {
+    public void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException, TransactionExpiredDueToServerException {
 
         if(transaction.getTimestamp() < currentTime - windowLengthInMilliseconds){
             throw new TransactionExpiredException(transaction, transaction.getTimestamp());
@@ -34,7 +35,7 @@ public class TransactionService {
             //blocked from executing this code for too long and is now actually outside the window
             long realCurrentTime = System.currentTimeMillis() / 1000L;
             if(transaction.getTimestamp() < realCurrentTime - windowLengthInMilliseconds){
-                throw new TransactionExpiredException(transaction, transaction.getTimestamp());
+                throw new TransactionExpiredDueToServerException(transaction, transaction.getTimestamp(), realCurrentTime, currentTime);
             }
 
             StatisticsSnapshot newSnapshot = new StatisticsSnapshot(transaction.getTimestamp(),
