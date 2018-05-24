@@ -21,7 +21,6 @@ public class TransactionService {
 
     @Value("${statistics.api.window_length_in_milliseconds}")
     private long windowLengthInMilliseconds;
-
     private volatile long mostRecentPostTime;
 
     public void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException, TransactionExpiredDueToServerException {
