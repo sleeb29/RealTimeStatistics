@@ -18,10 +18,6 @@ public class TransactionService {
     @Autowired
     StatisticsSnapshotRepository statisticsSnapshotRepository;
 
-    public TransactionService(){
-
-    }
-
     @Value("${statistics.api.window_length_in_milliseconds}")
     private long windowLengthInMilliseconds;
 
