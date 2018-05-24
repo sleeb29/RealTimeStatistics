@@ -50,55 +50,37 @@ public class TransactionService {
     private void updateSnapshots(long currentTime, SortedMap<Long, StatisticsSnapshot> newStatisticsSortedMap){
 
         ArrayList<StatisticsSnapshot> previousMinuteSnapshot = new ArrayList<>();
-
-        long count = 0;
-        Double sum = 0.0, min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         StatisticsSnapshot priorEntry = null;
         long startIndex = -1;
         long priorTimestamp = -1;
+        SnapshotUpdateTracker snapshotUpdateTracker = new SnapshotUpdateTracker(0, Double.MAX_VALUE, Double.MIN_VALUE, 0.0);
 
         for(Map.Entry<Long, StatisticsSnapshot> entry : statisticsSnapshotRepository.getStatisticsSnapshotSortedMap().entrySet()){
 
             long timeStamp = entry.getKey();
             StatisticsSnapshot entrySnapshot = entry.getValue();
 
-            if(timeStamp < currentTime - windowLengthInMilliseconds){
+            Boolean isOutsideOfWindow = timeStamp < currentTime - windowLengthInMilliseconds;
+            if(isOutsideOfWindow){
                 break;
             }
 
             newStatisticsSortedMap.put(timeStamp, entrySnapshot);
-
-            if(entrySnapshot.getMin() < min){
-                min = entrySnapshot.getMin();
-            }
-
-            if(entrySnapshot.getMax() > max){
-                max = entrySnapshot.getMax();
-            }
-
-            sum += entrySnapshot.getAmount();
-            count++;
+            snapshotUpdateTracker.update(entrySnapshot);
 
             if(priorEntry != null) {
                 updateSnapshot(priorEntry, startIndex, priorTimestamp - timeStamp, previousMinuteSnapshot);
             }
 
-
             priorEntry = entrySnapshot;
+            updateEntry(priorEntry, snapshotUpdateTracker);
 
-            updateEntry(priorEntry, sum, min, max, count);
-
-            if(priorTimestamp != -1){
-                startIndex = startIndex + (priorTimestamp - timeStamp);
-            } else {
-                startIndex = currentTime - timeStamp;
-            }
-
+            startIndex = getNewStartIndex(startIndex, priorTimestamp, timeStamp, currentTime);
             priorTimestamp = timeStamp;
 
         }
 
-        if(startIndex != -1){
+        if(priorTimestamp != -1){
             long chunkSize = windowLengthInMilliseconds - (currentTime - priorTimestamp);
             updateSnapshot(priorEntry, startIndex, chunkSize, previousMinuteSnapshot);
         }
@@ -111,16 +93,31 @@ public class TransactionService {
         for(long i = startIndex; i < startIndex + chunkSize; i++){
             previousMinuteSnapshot.add(priorEntry);
         }
+
         priorEntry.setPreviousMinuteSnapshot(previousMinuteSnapshot);
 
     }
 
-    private void updateEntry(StatisticsSnapshot entry, Double sum, Double min, Double max, long count){
-        entry.setSum(sum);
-        entry.setMin(min);
-        entry.setMax(max);
-        entry.setCount(count);
-        entry.setAvg(sum/count);
+    private void updateEntry(StatisticsSnapshot entry, SnapshotUpdateTracker snapshotUpdateTracker){
+
+        entry.setSum(snapshotUpdateTracker.sum);
+        entry.setMin(snapshotUpdateTracker.min);
+        entry.setMax(snapshotUpdateTracker.max);
+        entry.setCount(snapshotUpdateTracker.count);
+        entry.setAvg(snapshotUpdateTracker.sum/snapshotUpdateTracker.count);
+
+    }
+
+    private long getNewStartIndex(long startIndex, long priorTimestamp, long timeStamp, long currentTime){
+
+        if(priorTimestamp != -1){
+            startIndex = startIndex + (priorTimestamp - timeStamp);
+        } else {
+            startIndex = currentTime - timeStamp;
+        }
+
+        return startIndex;
+
     }
 
     public synchronized StatisticsSnapshot getResult(long endTime){
@@ -147,6 +144,37 @@ public class TransactionService {
 
     public synchronized void flushTransactions(){
         statisticsSnapshotRepository.flush();
+    }
+
+    //convenience class - used to build object to be passed around to break up
+    //the updating Snapshot logic
+    private class SnapshotUpdateTracker {
+
+        long count;
+        Double min;
+        Double max;
+        Double sum;
+
+        private SnapshotUpdateTracker(long count, Double min, Double max, Double sum){
+            this.count = count;
+            this.min = min;
+            this.max = max;
+            this.sum = sum;
+        }
+
+        private void update(StatisticsSnapshot entrySnapshot){
+            if(entrySnapshot.getMin() < this.min){
+                this.min = entrySnapshot.getMin();
+            }
+
+            if(entrySnapshot.getMax() > this.max){
+                this.max = entrySnapshot.getMax();
+            }
+
+            this.sum += entrySnapshot.getAmount();
+            this.count++;
+        }
+
     }
 
 
