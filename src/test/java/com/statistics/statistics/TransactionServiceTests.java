@@ -18,43 +18,82 @@ public class TransactionServiceTests {
     @Autowired
     TransactionService transactionService;
 
+    /*
+        In Order Transactions
+     */
+
     @Test
-    public void addOneTransaction_ValidTransaction_True() {
+    public void addOneTransactionInTimeOrder_ValidTransaction_True() {
 
-        long currentTime = System.currentTimeMillis() / 1000L;
+        TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
+            Assert.assertNotNull(statisticsSnapshot);
+            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
+        };
+
+        addXNumberOfTransactionsInTimeOrder(1, transactionPerRecordHandler);
+
+    }
+
+    @Test
+    public void addTenTransactionsInTimeOrder_AllTransactionsValid_True() {
+
+        TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
+            Assert.assertNotNull(statisticsSnapshot);
+            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
+        };
+
+        addXNumberOfTransactionsInTimeOrder(10, transactionPerRecordHandler);
+
+    }
+
+    @Test
+    public void addTenThousandTransactionsInTimeOrder_AllTransactionsValid_True() {
+
+        TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
+            Assert.assertNotNull(statisticsSnapshot);
+            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
+        };
+
+        addXNumberOfTransactionsInTimeOrder(10_000, transactionPerRecordHandler);
+
+    }
+
+    @Test
+    public void addOneHundredThousandTransactionsInTimeOrder_AllTransactionsValid_True() {
+
+        TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
+            Assert.assertNotNull(statisticsSnapshot);
+            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
+        };
+
+        addXNumberOfTransactionsInTimeOrder(100_000, transactionPerRecordHandler);
+
+    }
+
+    private void addXNumberOfTransactionsInTimeOrder(int numberOfTransactions, TransactionPerRecordHandler transactionPerRecordHandler){
+
         Double amount = 12.0;
+        int counter = 0;
+        long transactionTime = System.currentTimeMillis() / 1000L;
 
-        Transaction transaction = new Transaction(currentTime, amount);
-        transactionService.addTransaction(transaction, currentTime);
+        while(counter < numberOfTransactions){
 
-        StatisticsSnapshot statisticsSnapshot = transactionService.getResult(currentTime);
+            long newTransactionTime = transactionTime + (counter * 100);
+            Transaction transaction = new Transaction(newTransactionTime, amount);
+            transactionService.addTransaction(transaction, newTransactionTime);
+            StatisticsSnapshot statisticsSnapshot = transactionService.getResult(newTransactionTime);
+            transactionPerRecordHandler.handler(statisticsSnapshot, newTransactionTime);
 
-        Assert.assertNotNull(statisticsSnapshot);
+            counter++;
+
+        }
 
         transactionService.flushTransactions();
 
     }
 
-    @Test
-    public void addTwoTransactions_SecondTransactionValid_True() {
-
-        long transactionTime = System.currentTimeMillis() / 1000L;
-        long secondTransactionTime = transactionTime + 1000;
-        Double amount = 12.0;
-
-        Transaction transaction = new Transaction(transactionTime, amount);
-        transactionService.addTransaction(transaction, transactionTime);
-
-        Transaction transaction2 = new Transaction(secondTransactionTime, amount);
-        transactionService.addTransaction(transaction2, secondTransactionTime);
-
-        StatisticsSnapshot statisticsSnapshot = transactionService.getResult(secondTransactionTime);
-
-        Assert.assertNotNull(statisticsSnapshot);
-        Assert.assertEquals(statisticsSnapshot.getTimestamp(), secondTransactionTime);
-
-        transactionService.flushTransactions();
-
+    private interface TransactionPerRecordHandler {
+        void handler(StatisticsSnapshot statisticsSnapshot, long timeToUse);
     }
 
 }
