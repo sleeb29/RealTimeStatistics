@@ -4,7 +4,7 @@ import com.statistics.statistics.exception.TransactionExpiredDueToServerExceptio
 import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
-import com.statistics.statistics.proxy.TransactionServiceProxy;
+import com.statistics.statistics.service.TransactionServiceReverseProxy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebController {
 
     @Autowired
-    TransactionServiceProxy transactionServiceProxy;
+    TransactionServiceReverseProxy transactionServiceReverseProxy;
 
     @RequestMapping(value = "/transactions", method = RequestMethod.POST)
     public ResponseEntity<Void> postTransaction(@RequestBody Transaction transaction) {
 
         try{
             long currentTime = System.currentTimeMillis() / 1000L;
-            transactionServiceProxy.addTransaction(transaction, currentTime);
+            transactionServiceReverseProxy.addTransaction(transaction, currentTime);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (TransactionExpiredException | TransactionExpiredDueToServerException e) {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -37,7 +37,7 @@ public class WebController {
     public ResponseEntity<StatisticsSnapshot> getStatistics() {
 
         long endTime = System.currentTimeMillis() / 1000L;
-        StatisticsSnapshot statisticsSnapshot = transactionServiceProxy.getResult(endTime);
+        StatisticsSnapshot statisticsSnapshot = transactionServiceReverseProxy.getResult(endTime);
         return new ResponseEntity<>(statisticsSnapshot, HttpStatus.OK);
     }
 

@@ -1,4 +1,4 @@
-package com.statistics.statistics.proxy;
+package com.statistics.statistics.service;
 
 import com.statistics.statistics.exception.TransactionExpiredDueToServerException;
 import com.statistics.statistics.exception.TransactionExpiredException;
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TransactionServiceProxy {
+public class TransactionServiceReverseProxy {
 
     @Autowired
     TransactionService transactionService;
@@ -49,7 +49,7 @@ public class TransactionServiceProxy {
 
     }
 
-    //need to synchronize on the entire instance of the TransactionServiceProxy object here
+    //need to synchronize on the entire instance of the TransactionServiceReverseProxy object here
     //as we don't want the repository modified while we retrieve it
     public synchronized StatisticsSnapshot getResult(long endTime) {
         return transactionService.getResult(endTime);
