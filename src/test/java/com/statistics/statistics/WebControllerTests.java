@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,15 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {WebAppContext.class})
 @WebAppConfiguration
-@ComponentScan({
-        "com.statistics.statistics.service",
-        "com.statistics.statistics.repository",
-        "com.statistics.statistics.controller"
-})
+@SpringBootTest
 public class WebControllerTests {
-
-    @Mock
-    private TransactionService transactionService;
 
     private MockMvc mockMvc;
 
@@ -73,7 +67,7 @@ public class WebControllerTests {
     }
 
 
-    public static String asJsonString(final Object obj) {
+    private String asJsonString(final Object obj) {
         try {
             final ObjectMapper mapper = new ObjectMapper();
             final String jsonContent = mapper.writeValueAsString(obj);
