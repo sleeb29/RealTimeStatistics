@@ -11,6 +11,10 @@ public class StatisticsSnapshotRepository {
 
     SortedMap<Long, StatisticsSnapshot> statisticsSnapshotSortedMap;
 
+    public StatisticsSnapshotRepository(){
+        this.statisticsSnapshotSortedMap = new TreeMap<>(new TransactionTimeStampComparator());
+    }
+
     @PostConstruct
     private void initStatisticsSnapshotSortedMap() {
         this.statisticsSnapshotSortedMap = new TreeMap<>(new TransactionTimeStampComparator());
@@ -46,13 +50,17 @@ public class StatisticsSnapshotRepository {
         return this.getLastSnapshotEntry().getValue().getPreviousMinuteSnapshot().get(lookBackAsInt);
     }
 
+    public void flush(){
+        this.statisticsSnapshotSortedMap = new TreeMap<>(new TransactionTimeStampComparator());
+    }
+
     private class TransactionTimeStampComparator implements Comparator<Long> {
 
         @Override
         public int compare(Long a, Long b){
-            if(a < b){
+            if(a > b){
                 return -1;
-            } else if(a > b){
+            } else if(a < b){
                 return 1;
             }
             return 0;

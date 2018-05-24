@@ -27,7 +27,7 @@ public class WebController {
             transactionService.addTransaction(transaction, currentTime);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (TransactionExpiredException e) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
 
     }

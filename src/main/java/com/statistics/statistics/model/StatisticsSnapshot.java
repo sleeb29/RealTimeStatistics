@@ -86,7 +86,7 @@ public class StatisticsSnapshot {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmouent(double amount) {
         this.amount = amount;
     }
 
@@ -97,4 +97,5 @@ public class StatisticsSnapshot {
     public void setPreviousMinuteSnapshot(List<StatisticsSnapshot> previousMinuteSnapshot) {
         this.previousMinuteSnapshot = previousMinuteSnapshot;
     }
+
 }
