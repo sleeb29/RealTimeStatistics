@@ -1,5 +1,6 @@
 package com.statistics.statistics;
 
+import com.statistics.statistics.exception.TransactionExpiredDueToServerException;
 import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
@@ -14,13 +15,13 @@ import com.statistics.statistics.service.TransactionService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class TransactionServiceTests {
+public class TransactionServiceBusinessLogicTests {
 
     @Autowired
     TransactionService transactionService;
 
     @Test
-    public void addOneTransaction_ValidTransaction_True() throws TransactionExpiredException {
+    public void addOneTransaction_ValidTransaction_True() throws TransactionExpiredException, TransactionExpiredDueToServerException {
 
         long currentTime = System.currentTimeMillis() / 1000L;
         Double amount = 12.0;
@@ -37,7 +38,7 @@ public class TransactionServiceTests {
     }
 
     @Test
-    public void addTwoTransactions_SecondTransactionValid_True() throws TransactionExpiredException {
+    public void addTwoTransactions_SecondTransactionValid_True() throws TransactionExpiredException, TransactionExpiredDueToServerException {
 
         long transactionTime = System.currentTimeMillis() / 1000L;
         long secondTransactionTime = transactionTime + 1000;
