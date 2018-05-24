@@ -51,7 +51,7 @@ public class WebControllerTests {
     }
 
     @Test
-    public void postTransaction() throws Exception {
+    public void postTransaction_TransactionIsCreated_True() throws Exception {
 
         long currentTime = System.currentTimeMillis() / 1000L;
         Double amount = 12.0;
@@ -66,7 +66,7 @@ public class WebControllerTests {
     }
 
     @Test
-    public void getStatistics() throws Exception {
+    public void getStatistics_OkRequest_True() throws Exception {
 
         mockMvc.perform(get("/statistics"))
                 .andExpect(status().isOk());
