@@ -45,7 +45,13 @@
 			<artifactId>guava</artifactId>
 			<version>18.0</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>9.2.11.v20150529</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>
