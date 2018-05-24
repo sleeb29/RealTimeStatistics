@@ -1,7 +1,5 @@
 package com.statistics.statistics.service;
 
-import com.statistics.statistics.exception.TransactionExpiredDueToServerException;
-import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
 import com.statistics.statistics.repository.StatisticsSnapshotRepository;
@@ -21,7 +19,6 @@ public class TransactionService {
 
     @Value("${statistics.api.window_length_in_milliseconds}")
     private long windowLengthInMilliseconds;
-    private volatile long mostRecentPostTime;
 
     public void addTransaction(Transaction transaction, Long timeToUse) {
 
