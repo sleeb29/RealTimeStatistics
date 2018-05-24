@@ -11,6 +11,7 @@ public class StatisticsApplicationTests {
 
 	@Test
 	public void contextLoads() {
+
 	}
 
 }
