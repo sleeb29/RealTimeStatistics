@@ -1,5 +1,6 @@
 package com.statistics.statistics.service;
 
+import com.statistics.statistics.exception.TransactionExpiredException;
 import com.statistics.statistics.model.StatisticsSnapshot;
 import com.statistics.statistics.model.Transaction;
 import com.statistics.statistics.repository.StatisticsSnapshotRepository;
@@ -21,7 +22,21 @@ public class TransactionService {
     @Value("${statistics.api.window_length_in_milliseconds}")
     private long windowLengthInMilliseconds;
 
-    public void addTransaction(Transaction transaction, Long currentTime) {
+    public long getWindowLengthInMilliseconds() {
+        return windowLengthInMilliseconds;
+    }
+
+    public void setWindowLengthInMilliseconds(long windowLengthInMilliseconds) {
+        this.windowLengthInMilliseconds = windowLengthInMilliseconds;
+    }
+
+    public void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException {
+
+        //when called via the ReverseProxy will never be true
+        //as the checking is done by the ReverseProxy
+        if(transaction.getTimestamp() < currentTime - windowLengthInMilliseconds){
+            throw new TransactionExpiredException(transaction, transaction.getTimestamp());
+        }
 
         StatisticsSnapshot newSnapshot = new StatisticsSnapshot(transaction.getTimestamp(),
                 transaction.getAmount(), 1, transaction.getAmount(), transaction.getAmount(), transaction.getAmount());
@@ -139,7 +154,7 @@ public class TransactionService {
 
     }
 
-    public synchronized void flushTransactions(){
+    public void flushTransactions(){
         statisticsSnapshotRepository.flush();
     }
 
