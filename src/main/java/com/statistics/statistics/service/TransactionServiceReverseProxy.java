@@ -33,16 +33,9 @@ public class TransactionServiceReverseProxy {
                 throw new TransactionExpiredDueToServerException(transaction, transaction.getTimestamp(), realCurrentTime, currentTime);
             }
 
-            //still want to pass in currentTime to guarantee determinism for invocations of addTransaction
-            //if somehow the most recent post time was updated with a time after the current time use that
-            long timeToUse = currentTime;
-            if(mostRecentPostTime > 0 && mostRecentPostTime > currentTime){
-                timeToUse = mostRecentPostTime;
-            }
+            transactionService.addTransaction(transaction, realCurrentTime);
 
-            transactionService.addTransaction(transaction, currentTime);
-
-            this.mostRecentPostTime = timeToUse;
+            this.mostRecentPostTime = realCurrentTime;
 
         }
 

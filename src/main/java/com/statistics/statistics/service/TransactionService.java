@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -20,12 +21,12 @@ public class TransactionService {
     @Value("${statistics.api.window_length_in_milliseconds}")
     private long windowLengthInMilliseconds;
 
-    public void addTransaction(Transaction transaction, Long timeToUse) {
+    public void addTransaction(Transaction transaction, Long currentTime) {
 
         StatisticsSnapshot newSnapshot = new StatisticsSnapshot(transaction.getTimestamp(),
                 transaction.getAmount(), 1, transaction.getAmount(), transaction.getAmount(), transaction.getAmount());
         statisticsSnapshotRepository.addSnapShotEntry(transaction.getTimestamp(), newSnapshot);
-        refreshRepository(timeToUse);
+        refreshRepository(currentTime);
 
     }
 
@@ -39,7 +40,7 @@ public class TransactionService {
 
     private void updateSnapshots(long currentTime, SortedMap<Long, StatisticsSnapshot> newStatisticsSortedMap){
 
-        ArrayList<StatisticsSnapshot> previousMinuteSnapshot = new ArrayList<>();
+        List<StatisticsSnapshot> previousMinuteSnapshot = new ArrayList<>();
         StatisticsSnapshot priorEntry = null;
         long startIndex = -1;
         long priorTimestamp = -1;
@@ -60,6 +61,7 @@ public class TransactionService {
 
             if(priorEntry != null) {
                 updateSnapshot(priorEntry, startIndex, priorTimestamp - timeStamp, previousMinuteSnapshot);
+                previousMinuteSnapshot = priorEntry.getPreviousMinuteSnapshot();
             }
 
             priorEntry = entrySnapshot;
@@ -75,10 +77,13 @@ public class TransactionService {
             updateSnapshot(priorEntry, startIndex, chunkSize, previousMinuteSnapshot);
         }
 
+        Map.Entry<Long, StatisticsSnapshot> lastSnapshotEntry = statisticsSnapshotRepository.getLastSnapshotEntry();
+        lastSnapshotEntry.getValue().setPreviousMinuteSnapshot(previousMinuteSnapshot);
+
     }
 
     private void updateSnapshot(StatisticsSnapshot priorEntry, long startIndex,
-                                long chunkSize, ArrayList<StatisticsSnapshot> previousMinuteSnapshot){
+                                long chunkSize, List<StatisticsSnapshot> previousMinuteSnapshot){
 
         for(long i = startIndex; i < startIndex + chunkSize; i++){
             previousMinuteSnapshot.add(priorEntry);
@@ -95,6 +100,8 @@ public class TransactionService {
         entry.setMax(snapshotUpdateTracker.max);
         entry.setCount(snapshotUpdateTracker.count);
         entry.setAvg(snapshotUpdateTracker.sum/snapshotUpdateTracker.count);
+
+        entry.setPreviousMinuteSnapshot(new ArrayList<>());
 
     }
 
@@ -124,9 +131,9 @@ public class TransactionService {
             return null;
         }
 
-        Long lookBackTime = endTime - timeStamp;
+        Long lookBackIndex = windowLengthInMilliseconds - 1 - (endTime - timeStamp);
 
-        StatisticsSnapshot lastSnapshotToInclude = statisticsSnapshotRepository.getOldestSnapshotInWindow(lookBackTime);
+        StatisticsSnapshot lastSnapshotToInclude = statisticsSnapshotRepository.getOldestSnapshotInWindow(lookBackIndex);
 
         return lastSnapshotToInclude;
 

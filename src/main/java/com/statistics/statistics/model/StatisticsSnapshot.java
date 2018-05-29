@@ -1,10 +1,14 @@
 package com.statistics.statistics.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class StatisticsSnapshot {
 
     double avg;
@@ -16,10 +20,10 @@ public class StatisticsSnapshot {
     long count;
     long timestamp;
 
-    List<StatisticsSnapshot>  previousMinuteSnapshot;
+    List<StatisticsSnapshot> previousMinuteSnapshot;
 
     public StatisticsSnapshot(){
-        this.previousMinuteSnapshot = new ArrayList<>();
+
     }
 
     public StatisticsSnapshot(long timestamp, double sum, long count, double amount, double min, double max){
@@ -30,7 +34,7 @@ public class StatisticsSnapshot {
         this.amount = amount;
         this.max = max;
         this.min = min;
-        this.previousMinuteSnapshot = new ArrayList<>();
+
     }
 
     @JsonIgnore
@@ -82,18 +86,23 @@ public class StatisticsSnapshot {
         this.avg = avg;
     }
 
+    @JsonIgnore
     public double getAmount() {
         return amount;
     }
 
-    public void setAmouent(double amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
     public List<StatisticsSnapshot> getPreviousMinuteSnapshot() {
+        if(this.previousMinuteSnapshot == null){
+            return new ArrayList<>();
+        }
         return this.previousMinuteSnapshot;
     }
 
+    @JsonIgnore
     public void setPreviousMinuteSnapshot(List<StatisticsSnapshot> previousMinuteSnapshot) {
         this.previousMinuteSnapshot = previousMinuteSnapshot;
     }
