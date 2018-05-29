@@ -26,10 +26,6 @@ public class TransactionService {
         return windowLengthInMilliseconds;
     }
 
-    public void setWindowLengthInMilliseconds(long windowLengthInMilliseconds) {
-        this.windowLengthInMilliseconds = windowLengthInMilliseconds;
-    }
-
     public void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException {
 
         //when called via the ReverseProxy will never be true
@@ -132,6 +128,9 @@ public class TransactionService {
 
     }
 
+    //Not checking if the endTime is expired here as the Web Accessible method of invoking getResult is through the ReverseProxy
+    //for testing purposes want to be able to inject a desired endTime without worrying if it is with the last X milliseconds
+    //instead validate that we are retrying the window over X milliseconds
     public StatisticsSnapshot getResult(long endTime){
 
         Map.Entry<Long, StatisticsSnapshot> lastSnapshotEntry = statisticsSnapshotRepository.getLastSnapshotEntry();
