@@ -18,52 +18,24 @@ public class TransactionServiceInOrderTests {
     @Autowired
     TransactionService transactionService;
 
-    //@Test
+    @Test
     public void addOneTransaction_ValidTransaction_True() {
-
-        TestingUtils.TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
-            Assert.assertNotNull(statisticsSnapshot);
-            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
-        };
-
-        TestingUtils.addXNumberOfTransactions(transactionService,1, transactionPerRecordHandler);
-
+        TestingUtils.callAddXNumberOfTransactionsInOrder(transactionService,1);
     }
 
-    //@Test
+    @Test
     public void addTenTransactions_AllTransactionsValid_True() {
-
-        TestingUtils.TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
-            Assert.assertNotNull(statisticsSnapshot);
-            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
-        };
-
-        TestingUtils.addXNumberOfTransactions(transactionService,10, transactionPerRecordHandler);
-
+        TestingUtils.callAddXNumberOfTransactionsInOrder(transactionService,10);
     }
 
-    //@Test
+    @Test
     public void addTenThousandTransactions_AllTransactionsValid_True() {
-
-        TestingUtils.TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
-            Assert.assertNotNull(statisticsSnapshot);
-            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
-        };
-
-        TestingUtils.addXNumberOfTransactions(transactionService,10_000, transactionPerRecordHandler);
-
+        TestingUtils.callAddXNumberOfTransactionsInOrder(transactionService,10_000);
     }
 
-    //@Test
+    @Test
     public void addOneHundredThousandTransactions_AllTransactionsValid_True() {
-
-        TestingUtils.TransactionPerRecordHandler transactionPerRecordHandler = (statisticsSnapshot, newTransactionTime) -> {
-            Assert.assertNotNull(statisticsSnapshot);
-            Assert.assertEquals(statisticsSnapshot.getTimestamp(), newTransactionTime);
-        };
-
-        TestingUtils.addXNumberOfTransactions(transactionService, 100_000, transactionPerRecordHandler);
-
+        TestingUtils.callAddXNumberOfTransactionsInOrder(transactionService,100_000);
     }
 
     @Test
@@ -83,7 +55,7 @@ public class TransactionServiceInOrderTests {
         long expectedCount = 2;
         Double expectedAvg = (transactionOneAmount + transactionTwoAmount)/expectedCount;
 
-        long transactionTwoTime = System.currentTimeMillis() / 1000L;
+        long transactionTwoTime = System.currentTimeMillis() / 1000L + 10;
 
         Transaction transactionTwo = new Transaction(transactionTwoTime, transactionTwoAmount);
 
@@ -92,7 +64,6 @@ public class TransactionServiceInOrderTests {
         StatisticsSnapshot statisticsSnapshot = transactionService.getResult(transactionTwoTime);
 
         Assert.assertNotNull(statisticsSnapshot);
-        Assert.assertEquals(statisticsSnapshot.getTimestamp(), transactionTwoTime);
         Assert.assertEquals(statisticsSnapshot.getMax(), expectedMax, 0.0);
         Assert.assertEquals(statisticsSnapshot.getMin(), expectedMin, 0.0);
         Assert.assertEquals(statisticsSnapshot.getAvg(), expectedAvg, 0.0);
