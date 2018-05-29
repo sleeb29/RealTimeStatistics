@@ -36,9 +36,9 @@ public class WebController {
     @RequestMapping(value = "/statistics", method = RequestMethod.GET)
     public ResponseEntity<StatisticsSnapshot> getStatistics() {
 
-        long endTime = System.currentTimeMillis() / 1000L;
-        StatisticsSnapshot statisticsSnapshot = transactionServiceReverseProxy.getResult(endTime);
+        StatisticsSnapshot statisticsSnapshot = transactionServiceReverseProxy.getResult();
         return new ResponseEntity<>(statisticsSnapshot, HttpStatus.OK);
+
     }
 
 }

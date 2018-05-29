@@ -29,13 +29,24 @@ public class TransactionServiceReverseProxy {
 
     public void addTransaction(Transaction transaction, Long currentTime) throws TransactionExpiredException, TransactionExpiredDueToServerException {
 
+        //return immediately, still check after we acquire the lock though in case
+        //the server could not handle the transaction
+        if(transaction.getTimestamp() < currentTime - windowLengthInMilliseconds){
+            throw new TransactionExpiredException(transaction, transaction.getTimestamp());
+        }
+
         Boolean acquiredLock = readWriteLock.writeLock().tryLock();
         while(!acquiredLock){
             acquiredLock = readWriteLock.writeLock().tryLock();
         }
 
-        if(transaction.getTimestamp() < currentTime - windowLengthInMilliseconds){
-            throw new TransactionExpiredException(transaction, transaction.getTimestamp());
+        //test that the thread wasn't blocked for too long
+        //checking here instead of letting the underlying service through the error
+        //so we can log that the post was originally within the window but due to inability
+        //to process transaction in time had to discard it
+        long realCurrentTime = System.currentTimeMillis() / 1000L;
+        if(transaction.getTimestamp() < realCurrentTime - windowLengthInMilliseconds){
+            throw new TransactionExpiredDueToServerException(transaction, transaction.getTimestamp(), realCurrentTime, currentTime);
         }
 
         transactionService.addTransaction(transaction, currentTime);
@@ -44,14 +55,17 @@ public class TransactionServiceReverseProxy {
 
     }
 
-    public StatisticsSnapshot getResult(long endTime) {
+    public StatisticsSnapshot getResult() {
 
         Boolean acquiredLock = readWriteLock.readLock().tryLock();
         while(!acquiredLock){
             acquiredLock = readWriteLock.readLock().tryLock();
         }
 
-        StatisticsSnapshot statisticsSnapshot = transactionService.getResult(endTime);
+        //allows for grabbing the current snapshot after acquiring the lock
+        long currentTime = System.currentTimeMillis() / 1000L;
+
+        StatisticsSnapshot statisticsSnapshot = transactionService.getResult(currentTime);
 
         readWriteLock.readLock().unlock();
 
